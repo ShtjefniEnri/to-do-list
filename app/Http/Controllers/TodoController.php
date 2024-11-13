@@ -18,31 +18,21 @@ class TodoController extends Controller
         return view('todo.index', compact('todo'));
     }
 
-    public function create()
-    {
-        return view('todo.add-edit');
-    }
-
-    public function edit(Todo $todo)
-    {
-        return view('todo.add-edit', compact('todo'));
-    }
-
     public function store(Request $request)
     {
         $todo = $this->todoService->store($request);
-        return redirect()->route('todo.index')->with('success', 'Todo ' . $todo->title . ' created successfully.');
+        return response()->json(['success' => true, 'id' => $todo->id]);
     }
 
     public function update(Request $request, Todo $todo)
     {
-        $todo = $this->todoService->store($request, $todo);
-        return redirect()->route('todo.index')->with('success', 'Todo ' . $todo->title . ' updated successfully.');
+        $this->todoService->store($request, $todo);
+        return response()->json(['success' => true]);
     }
 
     public function destroy(Todo $todo)
     {
         $todo->delete();
-        return redirect()->route('todo.index')->with('success', 'Todo ' . $todo->title . ' deleted successfully.');
+        return response()->json(['success' => true]);
     }
 }

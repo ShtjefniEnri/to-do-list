@@ -1,5 +1,18 @@
-@extends('layouts.layout')
-@section('todo-field')
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Todo List</title>
+</head>
+
+<body>
+<div class="container">
+    <h1>Todo List</h1>
     <table class="table table-bordered">
         <thead>
         <tr>
@@ -9,26 +22,31 @@
             <th>Action</th>
         </tr>
         </thead>
-        <tbody>
+        <tbody id="todo-table-body">
         @foreach($todo as $item)
-            <tr>
-                <td>{{ $item->title }}</td>
-                <td>{{ $item->description }}</td>
-                <td>{{ $item->status }}</td>
+            <tr data-id="{{ $item->id }}" data-update-route="{{ route('todo.update', $item->id) }}">
+                <td contenteditable="true" class="editable" data-field="title">{{ $item->title }}</td>
+                <td contenteditable="true" class="editable" data-field="description">{{ $item->description }}</td>
                 <td>
-                    <a href="{{ route('todo.edit', $item->id) }}" class="btn btn-primary btn-sm">Edit</a>
-                    <form action="{{ route('todo.destroy', $item->id) }}" method="POST" style="display:inline;">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">
-                            Delete
-                        </button>
-                    </form>
+                    <select class="form-select editable" data-field="status">
+                        <option value="To do" {{ $item->status == 'To do' ? 'selected' : '' }}>To do</option>
+                        <option value="In progress" {{ $item->status == 'In progress' ? 'selected' : '' }}>In progress</option>
+                        <option value="Finished" {{ $item->status == 'Finished' ? 'selected' : '' }}>Finished</option>
+                    </select>
+                </td>
+                <td>
+                    <button class="btn btn-danger btn-sm delete-btn" data-destroy-route="{{ route('todo.destroy', $item->id) }}">Delete</button>
                 </td>
             </tr>
         @endforeach
         </tbody>
     </table>
 
-    <a href="{{ route('todo.create') }}" class="btn btn-success">Create Todo</a>
-@endsection
+    <button id="create-todo" class="btn btn-success" data-store-route="{{ route('todo.store') }}">Create Todo</button>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{{ asset('js/action.js') }}"></script>
+</body>
+
+</html>
