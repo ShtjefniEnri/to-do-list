@@ -7,6 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <title>Todo List</title>
 </head>
 
@@ -44,6 +45,7 @@
 
     <button id="create-todo" class="btn btn-success" data-store-route="{{ route('todo.store') }}">Create Todo</button>
 </div>
+<div id="notification" class="notification"></div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="{{ asset('js/action.js') }}"></script>

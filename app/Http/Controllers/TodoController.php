@@ -20,19 +20,47 @@ class TodoController extends Controller
 
     public function store(Request $request)
     {
-        $todo = $this->todoService->store($request);
-        return response()->json(['success' => true, 'id' => $todo->id]);
+        try {
+            $todo = $this->todoService->store($request);
+            return response()->json([
+                'success' => true,
+                'message' => "Todo created successfully!",
+                'id' => $todo->id
+            ]);
+        } catch (\Exception $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], responseStatusCode($exception->getCode()));
+        }
     }
 
     public function update(Request $request, Todo $todo)
     {
-        $this->todoService->store($request, $todo);
-        return response()->json(['success' => true]);
+        try {
+            $this->todoService->store($request, $todo);
+            return response()->json([
+                'success' => true,
+                'message' => "Todo updated successfully!"
+            ]);
+        } catch (\Exception $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], responseStatusCode($exception->getCode()));
+        }
     }
 
     public function destroy(Todo $todo)
     {
-        $todo->delete();
-        return response()->json(['success' => true]);
+        try {
+            $todo->delete();
+            return response()->json([
+                'success' => true,
+                'message' => "Todo deleted successfully!"
+            ]);
+        } catch (\Exception $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], responseStatusCode($exception->getCode()));
+        }
     }
 }

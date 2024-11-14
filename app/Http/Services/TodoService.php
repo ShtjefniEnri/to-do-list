@@ -11,7 +11,6 @@ class TodoService
     {
         $request->validate([
             'title' => 'required|max:255',
-            'description' => 'required',
             'status' => 'required',
         ]);
 

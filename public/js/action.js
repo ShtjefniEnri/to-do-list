@@ -19,6 +19,13 @@ $(document).ready(function () {
                 dataType: 'json',
                 url: updateUrl,
                 data: {title, description, status},
+                success: function (response) {
+                    showNotification(response.message, 'success');
+                },
+                error: function (xhr) {
+                    const response = xhr.responseJSON;
+                    showNotification(response.message, 'error');
+                }
             });
         }
     });
@@ -32,45 +39,65 @@ $(document).ready(function () {
                 type: 'DELETE',
                 dataType: 'json',
                 url: destroyUrl,
-                success: row.remove(),
+                success: function (response) {
+                    row.remove();
+                    showNotification(response.message, 'success');
+                    resetCreateState();
+                },
+                error: function (xhr) {
+                    const response = xhr.responseJSON;
+                    showNotification(response.message, 'error');
+                }
             });
         }
     });
 
     $('#create-todo').on('click', function () {
-        const newRow = `<tr>
-                            <td contenteditable="true" class="editable" data-field="title"></td>
-                            <td contenteditable="true" class="editable" data-field="description"></td>
-                            <td>
-                                <select class="form-select editable" data-field="status">
-                                    <option value="To do">To do</option>
-                                    <option value="In progress">In progress</option>
-                                    <option value="Finished">Finished</option>
-                                </select>
-                            </td>
-                            <td>
-                                <button class="btn btn-primary btn-sm save-btn" disabled>Save</button>
-                                <button class="btn btn-danger btn-sm delete-btn">Delete</button>
-                            </td>
-                        </tr>`;
+        $(this).prop('disabled', true);
+
+        const newRow = $('<tr></tr>');
+
+        const titleCell = $('<td></td>').attr('contenteditable', 'true').addClass('editable').attr('data-field', 'title');
+        const descriptionCell = $('<td></td>').attr('contenteditable', 'true').addClass('editable').attr('data-field', 'description');
+
+        const statusCell = $('<td></td>');
+        const statusSelect = $('<select></select>').addClass('form-select editable').attr('data-field', 'status');
+        statusSelect.append('<option value="To do">To do</option>');
+        statusSelect.append('<option value="In progress">In progress</option>');
+        statusSelect.append('<option value="Finished">Finished</option>');
+        statusCell.append(statusSelect);
+
+        const actionCell = $('<td></td>');
+        const deleteButton = $('<button></button>').addClass('btn btn-danger btn-sm delete-btn').text('Delete').prop('disabled', true);
+        actionCell.append(deleteButton);
+
+        newRow.append(titleCell, descriptionCell, statusCell, actionCell);
+
         $('#todo-table-body').append(newRow);
+
+        titleCell.focus();
+
+        newRow.on('focusout', function () {
+            setTimeout(() => {
+                if (!newRow.find(':focus').length) {
+                    const todoId = newRow.data('id');
+                    const title = newRow.find('[data-field="title"]').text();
+
+                    if (!todoId && title) {
+                        saveNewTodo(newRow);
+                        deleteButton.prop('disabled', false);
+                    } else {
+                        resetCreateState();
+                    }
+                    if (!todoId && !title) {
+                        newRow.remove();
+                    }
+                }
+            }, 10);
+        });
     });
 
-    $(document).on('input change', '.editable', function () {
-        const row = $(this).closest('tr');
-        const title = row.find('[data-field="title"]').text();
-        const description = row.find('[data-field="description"]').text();
-        const status = row.find('[data-field="status"]').val();
-
-        if (title && description && status) {
-            row.find('.save-btn').prop('disabled', false);
-        } else {
-            row.find('.save-btn').prop('disabled', true);
-        }
-    });
-
-    $(document).on('click', '.save-btn', function () {
-        const row = $(this).closest('tr');
+    function saveNewTodo(row) {
         const storeUrl = $('#create-todo').data('store-route');
         const title = row.find('[data-field="title"]').text();
         const description = row.find('[data-field="description"]').text();
@@ -84,10 +111,30 @@ $(document).ready(function () {
             success: function (response) {
                 row.attr('data-id', response.id)
                     .attr('data-update-route', `/update/${response.id}`)
-                row.find('.delete-btn').attr('data-destroy-route', `/destroy/${response.id}`);
+                    .find('.delete-btn').attr('data-destroy-route', `/destroy/${response.id}`);
                 row.find('.save-btn').remove();
+                showNotification(response.message, 'success');
+                resetCreateState()
             },
+            error: function (xhr) {
+                const response = xhr.responseJSON;
+                showNotification(response.message, 'error');
+                resetCreateState()
+            }
         });
-    });
+    }
+
+    function showNotification(message, type) {
+        const notification = $('#notification');
+        notification.text(message).removeClass('success error').addClass(type).addClass('show');
+
+        setTimeout(() => {
+            notification.removeClass('show');
+        }, 3000);
+    }
+
+    function resetCreateState() {
+        $('#create-todo').prop('disabled', false);
+    }
 });
 
