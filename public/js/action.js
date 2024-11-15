@@ -9,16 +9,21 @@ $(document).ready(function () {
         const row = $(this).closest('tr');
         const todoId = row.data('id');
         const updateUrl = row.data('update-route');
-        const title = row.find('[data-field="title"]').text();
-        const description = row.find('[data-field="description"]').text();
-        const status = row.find('[data-field="status"]').val();
+
+        const formData = new FormData();
+        formData.append('_method', 'PUT');
+        formData.append('title', row.find('[data-field="title"]').text());
+        formData.append('description', row.find('[data-field="description"]').text());
+        formData.append('status', row.find('[data-field="status"]').val());
 
         if (todoId) {
             $.ajax({
-                type: 'PUT',
+                type: 'POST',
                 dataType: 'json',
                 url: updateUrl,
-                data: {title, description, status},
+                data: formData,
+                processData: false,
+                contentType: false,
                 success: function (response) {
                     showNotification(response.message, 'success');
                 },
@@ -99,15 +104,19 @@ $(document).ready(function () {
 
     function saveNewTodo(row) {
         const storeUrl = $('#create-todo').data('store-route');
-        const title = row.find('[data-field="title"]').text();
-        const description = row.find('[data-field="description"]').text();
-        const status = row.find('[data-field="status"]').val();
+
+        const formData = new FormData();
+        formData.append('title', row.find('[data-field="title"]').text());
+        formData.append('description', row.find('[data-field="description"]').text());
+        formData.append('status', row.find('[data-field="status"]').val());
 
         $.ajax({
             type: 'POST',
             dataType: 'json',
             url: storeUrl,
-            data: {title, description, status},
+            data: formData,
+            processData: false,
+            contentType: false,
             success: function (response) {
                 row.attr('data-id', response.id)
                     .attr('data-update-route', `/update/${response.id}`)
