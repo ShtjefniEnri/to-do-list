@@ -5,6 +5,24 @@ $(document).ready(function () {
         }
     });
 
+    function ajaxRequest({ type, url, data, successCallback }) {
+        $.ajax({
+            type: type,
+            url: url,
+            data: data,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: function (response) {
+                successCallback(response);
+            },
+            error: function (xhr) {
+                const response = xhr.responseJSON;
+                showNotification(response.message, 'error');
+            }
+        });
+    }
+
     $(document).on('blur', '.editable', function () {
         const row = $(this).closest('tr');
         const todoId = row.data('id');
@@ -17,19 +35,12 @@ $(document).ready(function () {
         formData.append('status', row.find('[data-field="status"]').val());
 
         if (todoId) {
-            $.ajax({
+            ajaxRequest({
                 type: 'POST',
-                dataType: 'json',
                 url: updateUrl,
                 data: formData,
-                processData: false,
-                contentType: false,
-                success: function (response) {
+                successCallback: function (response) {
                     showNotification(response.message, 'success');
-                },
-                error: function (xhr) {
-                    const response = xhr.responseJSON;
-                    showNotification(response.message, 'error');
                 }
             });
         }
@@ -40,18 +51,12 @@ $(document).ready(function () {
         const destroyUrl = $(this).data('destroy-route');
 
         if (confirm('Are you sure you want to delete this todo?')) {
-            $.ajax({
+            ajaxRequest({
                 type: 'DELETE',
-                dataType: 'json',
                 url: destroyUrl,
-                success: function (response) {
+                successCallback: function (response) {
                     row.remove();
                     showNotification(response.message, 'success');
-                    resetCreateState();
-                },
-                error: function (xhr) {
-                    const response = xhr.responseJSON;
-                    showNotification(response.message, 'error');
                 }
             });
         }
@@ -91,11 +96,9 @@ $(document).ready(function () {
                     if (!todoId && title) {
                         saveNewTodo(newRow);
                         deleteButton.prop('disabled', false);
-                    } else {
-                        resetCreateState();
-                    }
-                    if (!todoId && !title) {
+                    } else if (!todoId && !title) {
                         newRow.remove();
+                        resetCreateState()
                     }
                 }
             }, 10);
@@ -110,25 +113,17 @@ $(document).ready(function () {
         formData.append('description', row.find('[data-field="description"]').text());
         formData.append('status', row.find('[data-field="status"]').val());
 
-        $.ajax({
+        ajaxRequest({
             type: 'POST',
-            dataType: 'json',
             url: storeUrl,
             data: formData,
-            processData: false,
-            contentType: false,
-            success: function (response) {
+            successCallback: function (response) {
                 row.attr('data-id', response.id)
                     .attr('data-update-route', `/update/${response.id}`)
                     .find('.delete-btn').attr('data-destroy-route', `/destroy/${response.id}`);
                 row.find('.save-btn').remove();
                 showNotification(response.message, 'success');
-                resetCreateState()
-            },
-            error: function (xhr) {
-                const response = xhr.responseJSON;
-                showNotification(response.message, 'error');
-                resetCreateState()
+                resetCreateState();
             }
         });
     }
@@ -146,4 +141,3 @@ $(document).ready(function () {
         $('#create-todo').prop('disabled', false);
     }
 });
-
